@@ -1,0 +1,49 @@
+Project Name: E-commerce Platform
+
+Description:
+The goal of this project is to develop a robust and scalable e-commerce platform using GraphQL API. The platform will provide a seamless shopping experience for users, with features such as product browsing, cart management, order placement, and user authentication.
+
+Key Features:
+
+1. Product Catalog:
+- Users can browse through a wide range of products.
+- Products are organized into categories and can be filtered and sorted based on various attributes.
+- Detailed product information, including images, descriptions, and pricing, is available.
+
+2. Shopping Cart:
+- Users can add products to their shopping cart and manage the quantities.
+- The cart is synchronized in real-time across devices and persists between sessions.
+- Users can update quantities, remove items, and calculate the total price.
+
+3. User Authentication and Authorization:
+- Users can create accounts, login, and manage their profiles.
+- User authentication is implemented using secure methods like JWT (JSON Web Tokens).
+- Certain actions, such as placing an order or accessing personal information, require appropriate authorization.
+
+4. Order Management:
+- Users can place orders, providing shipping details and payment information.
+- Order confirmation emails are sent to users upon successful order placement.
+- Users can view their order history and track the status of their orders.
+
+5. GraphQL API:
+- The entire platform is built on a GraphQL API, providing a single endpoint for data retrieval and mutation.
+- The API follows best practices for schema design, query optimization, and error handling.
+- Subscriptions are implemented for real-time notifications, such as order updates or stock availability.
+
+Technologies Used:
+
+- Backend:
+  - Node.js with Express framework
+  - GraphQL with Apollo Server
+  - MongoDB for data storage
+  - JWT for user authentication
+
+- Frontend:
+  - React.js with Apollo Client for GraphQL integration
+  - HTML, CSS, and JavaScript for UI development
+  - State management library i.e Redux for managing application state
+
+This e-commerce platform leverages the power of GraphQL to provide efficient and flexible data retrieval, enabling a seamless shopping experience for users. The project involves both backend and frontend development, focusing on schema design, API implementation, and client integration.
+
+By building this project, you will gain practical experience in developing a GraphQL API, handling complex data relationships, implementing authentication and authorization, and building a feature-rich e-commerce platform.
+
