@@ -1,0 +1,80 @@
+// Tools used:
+// - pgAdmin for database design and schema management
+// - Sequelize as the ORM library
+// - Flyway for data migration and versioning
+// - pgBouncer for connection pooling
+// - pg_stat_statements for performance monitoring
+
+// Import required libraries
+const { Sequelize } = require('sequelize');
+const { createPool } = require('pg');
+
+// Set up database connection
+const sequelize = new Sequelize('database', 'username', 'password', {
+  host: 'localhost',
+  dialect: 'postgres',
+  logging: false, // Disable Sequelize logging for production
+});
+
+// Define the database models using Sequelize
+const Product = sequelize.define('Product', {
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  price: {
+    type: Sequelize.FLOAT,
+    allowNull: false,
+  },
+  description: {
+    type: Sequelize.TEXT,
+  },
+});
+
+// Set up connection pooling with pgBouncer
+const pool = createPool({
+  host: 'localhost',
+  port: 5432,
+  user: 'username',
+  password: 'password',
+  database: 'database',
+  connectionTimeoutMillis: 5000,
+  max: 20, // Maximum number of connections in the pool
+});
+
+// Perform data migration with Flyway
+// ...
+
+// Perform database operations using Sequelize
+async function getProductById(id) {
+  return Product.findByPk(id);
+}
+
+async function createProduct(productData) {
+  return Product.create(productData);
+}
+
+// Perform performance monitoring with pg_stat_statements
+// ...
+
+// Example usage
+async function main() {
+  try {
+    await sequelize.authenticate();
+    console.log('Connected to the database.');
+
+    const product = await getProductById(1);
+    console.log('Product:', product);
+
+    const newProduct = await createProduct({
+      name: 'New Product',
+      price: 9.99,
+      description: 'A new product added to the database.',
+    });
+    console.log('New product created:', newProduct);
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+  }
+}
+
+main();
