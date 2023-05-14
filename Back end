@@ -1,0 +1,147 @@
+Backend (Node.js with Express and Apollo Server):
+Set up the project structure, install required dependencies (such as express, apollo-server-express, mongoose, etc.), and configure the server.
+Define the GraphQL schema using the Apollo Server's gql template tag. This includes types for User, Product, Cart, Order, etc., along with queries, mutations, and subscriptions.
+Implement resolvers for each query, mutation, and subscription defined in the schema. Resolvers are functions that fetch and manipulate the data.
+Connect to the MongoDB database using mongoose and create models for User, Product, Cart, Order, etc.
+Implement authentication and authorization logic using JWT. Validate user credentials, generate tokens, and protect certain API endpoints with authentication middleware.
+Write the necessary CRUD operations for fetching and manipulating data in the database using the models.
+
+Coding Part:-
+
+const express = require('express');
+const { ApolloServer, gql } = require('apollo-server-express');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Set up MongoDB connection
+mongoose.connect('mongodb://localhost/ecommerce', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => console.log('Connected to MongoDB'));
+
+// Defined Mongoose schema and models
+const userSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+});
+
+const User = mongoose.model('User', userSchema);
+
+// Set up Apollo Server
+const typeDefs = gql`
+  type User {
+    id: ID!
+    username: String!
+  }
+
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  type Query {
+    me: User
+    getUser(userId: ID!): User
+  }
+
+  type Mutation {
+    signup(username: String!, password: String!): AuthPayload
+    login(username: String!, password: String!): AuthPayload
+  }
+`;
+
+const resolvers = {
+  Query: {
+    me: async (_, __, { currentUser }) => {
+      if (!currentUser) {
+        throw new Error('Not authenticated');
+      }
+      return currentUser;
+    },
+    getUser: async (_, { userId }) => {
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user;
+    },
+  },
+  Mutation: {
+    signup: async (_, { username, password }) => {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) {
+        throw new Error('Username already exists');
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = new User({ username, password: hashedPassword });
+      await user.save();
+
+      const token = jwt.sign({ userId: user.id }, 'secretkey');
+      return { token, user };
+    },
+    login: async (_, { username, password }) => {
+      const user = await User.findOne({ username });
+      if (!user) {
+        throw new Error('Invalid username or password');
+      }
+
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        throw new Error('Invalid username or password');
+      }
+
+      const token = jwt.sign({ userId: user.id }, 'secretkey');
+      return { token, user };
+    },
+  },
+};
+
+const authMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization || '';
+  if (!token) {
+    return res.status(401).json({ message: 'Not authenticated' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, 'secretkey');
+    const currentUser = await User.findById(decoded.userId);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    req.currentUser = currentUser;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ req }) => {
+    return {
+      currentUser: req.currentUser,
+    };
+  },
+});
+
+// Create an instance of the Express server
+const app = express();
+
+// Apply the authentication middleware to protected routes
+app.use('/
+// Apply the authentication middleware to protected routes
+app.use('/protected', authMiddleware);
+
+// Apply the Apollo Server middleware to the Express app
+server.applyMiddleware({ app });
+
+// Start the server
+app.listen({ port: 4000 }, () =>
+  console.log(`Server running at http://localhost:4000${server.graphqlPath}`)
+);
